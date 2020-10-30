@@ -5,6 +5,11 @@
 
 (() => { // anonymous function prevents variable conflicts with other Drafts actions
 
+	function add_tag_except_template(tag) {
+		if (tag !== "template")
+			this.addTag(tag);
+	}
+
 	// create temp workspace to query drafts
 	let workspace = Workspace.create();
 	workspace.tagFilter = "template";
@@ -46,10 +51,9 @@
 		template += template_draft.content + "\n";
 		
 		if (first_template) {
-				d.languageGrammar = template_draft.languageGrammar;
-				d.tags = template_draft.tags;
-				d.removeTag("template");
-				first_template = false;
+			d.languageGrammar = template_draft.languageGrammar;
+			template_draft.tags.forEach(add_tag_except_template, d);
+			first_template = false;
 		}
 	}
 	
