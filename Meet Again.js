@@ -65,17 +65,10 @@
 		// extract attendees & uncheck boxes
 		new_content += bring_section_forward(most_recent_content, "Attendees", string => string.replace(/^- \[x\] /gm, "- [ ] "));
 
-		// extract background
-		new_content += bring_section_forward(most_recent_content, "Background", string => string);
-
-		// extract reminders
-		new_content += bring_section_forward(most_recent_content, "Reminders", string => string);
-
-		// extract milestones & move New heading to end
-		new_content += bring_section_forward(most_recent_content, "Milestones", string => string.replace(/^    - $/g, "").replace(/^- New:.*?    - /ms, "    - ").replace(/\s*$/, "\n- New:\n    - \n\n"));
-
-		// extract project statuses
-		new_content += bring_section_forward(most_recent_content, "Projects", string => string);
+		// extract other sections
+		["Background", "Reminders", "Milestones", "Projects"].forEach(heading =>
+			new_content += bring_section_forward(most_recent_content, heading, string => string)
+		);
 	}
 		
 	// if no previous draft was selected, start anew
