@@ -19,7 +19,7 @@
 	}
 	
 	let new_draft = Draft.create();
-	new_draft.content = "# Project Dashboard\n\n" + Object.keys(status_table).map(key => "- **" + key + ":** " + status_table[key][0] + "—" + status_table[key][1]).join("\n");
+	new_draft.content = "# Project Dashboard\n\n" + Object.keys(status_table).map(key => "- **" + key + ":** " +  status_table[key][1]).join("\n");
 	new_draft.update();
 	
 	// bring it up in Drafts
