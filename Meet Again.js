@@ -91,9 +91,6 @@
 	
 	new_content += `## 
 - 
-
-## Questions
-- 
 `;
 	
 	// create the new draft
