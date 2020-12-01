@@ -10,22 +10,16 @@
 // - If no recent draft is selected, create an empty draft of the same format
 
 (() => { // anonymous function prevents variable conflicts with other Drafts actions
-	const days90_in_ms = 180 * 24 * 3600 * 1000;
-	const begin_date = new Date((Date().now - days90_in_ms));
-		
-	function filter_unique_recent_drafts(draft, index, self) {
-		if (draft.createdAt < begin_date) {
-			return false;
-		}
+	function filter_unique_drafts(draft, index, self) {
 		return self.map(d => d.displayTitle).indexOf(draft.displayTitle) === index;
-	}
-	
-	function sort_drafts_by_title(a, b) {
-		return ('' + a.displayTitle).localeCompare(b.displayTitle);
 	}
 	
 	function filter_draft_by_title(draft, index, self) {
 		return draft.displayTitle == this;
+	}
+	
+	function sort_drafts_by_title(a, b) {
+		return ('' + a.displayTitle).localeCompare(b.displayTitle);
 	}
 	
 	function bring_section_forward(previous_content, section, callback) {
@@ -33,7 +27,19 @@
 		return matches ? callback(matches[0]) : "";
 	}
 	
-	let meeting_drafts = Draft.query("", "all", ["meeting"], [], "created", true).sort(sort_drafts_by_title).filter(filter_unique_recent_drafts);
+	// create temp workspace to query drafts
+	let workspace = Workspace.create();
+	workspace.tagFilter = "meeting";
+	workspace.setAllSort("created");
+	
+	let start = new QueryDate();
+	start.field = "created";
+	start.type = "relative";
+	start.days = -180;
+	workspace.startDate = start;
+	
+	// get list of drafts in workspace
+	let meeting_drafts = workspace.query("all").sort(sort_drafts_by_title).filter(filter_unique_drafts);
 	
 	let prompt = Prompt.create();
 	prompt.title = "New Meeting Notes Draft";
