@@ -30,7 +30,7 @@
 	// create temp workspace to query drafts
 	let workspace = Workspace.create();
 	workspace.tagFilter = "meeting";
-	workspace.setAllSort("created");
+	workspace.setAllSort("created", true);
 	
 	let start = new QueryDate();
 	start.field = "created";
