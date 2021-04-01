@@ -81,6 +81,10 @@ software, even if advised of the possibility of such damage.
 
 	function run_block_gamut(text) {
 		text = do_headers(text);
+
+		// protect horizontal rules but don't render (no BBCode equivalent)
+		text = text.replace(/^[ ]{0,2}([ ]?[*_-][ ]?){3,}[ \t]*$/gm, match => match.replace(/[*_-]/g, c => char_hash.get(c)));
+
 		text = do_lists(text);
 		text = do_code_blocks(text);
 		text = do_blockquotes(text);
