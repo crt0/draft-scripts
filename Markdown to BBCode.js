@@ -55,20 +55,11 @@ software, even if advised of the possibility of such damage.
 	const char_hash = new Map([...special_chars].map(c => [c, String.fromCharCode(c.charCodeAt(0) + 0xE000)]));
 
 	const nested_brackets = '(?:[^\\[\\]]+|\\[(?:[^\\[\\]]+|\\[[^\\[\\]]*\\])*\\])*';
-	
+
 	function escape_font_styles(text) {
 		return text.replace(/[*_]/g, match => char_hash.get(match));
 	}
 
-	function do_anchors(text) {
-		let re = new RegExp(`\\[(${nested_brackets})\\]\\([ \\t]*<?(.*?)>?[ \\t]*(?:(['"])(.*?)\\3)?\\)`, 'gs');
-		return text.replace(re, (match, link_text, url, quote, title) => '[url=' + escape_font_styles(url) + ']' + link_text + '[/url]');
-	}
-
-	function outdent(text) {
-		return text.replace(new RegExp(`^(\\t|[ ]{1,${tab_width}})`, 'gm'), '');
-	}
-	
 	function prompt(message) {
 		let p = Prompt.create();
 		p.message = message;
@@ -78,40 +69,53 @@ software, even if advised of the possibility of such damage.
 			exit;
 		}
 	}
-	
-	function list_item_recurse(match, leading_line, leading_whitespace, content) {
-		let item = remove_canaries(content);
-		if (leading_line || item.match(/\n{2,}/))
-			item = run_block_gamut(outdent(item));
-		else {
-			item = do_lists(outdent(item));
-			item = item.replace(/\n$/, '');
-			item = run_span_gamut(item);
-		}
 
-		return '[' + char_hash.get('*') + '] ' + item + '\n';
+	function markdown(text) {
+		text += '\n\n';
+		text = detab(text);
+		text = text.replace(/^[ \t]+$/gm, '');
+		text = run_block_gamut(text);
+		text = unescape_special_chars(text);
+		return text + '\n';
 	}
-	
-	function process_list_items(list_string, marker_any) {
-		list_level++;
-		list_string = list_string + end_canary;
-		list_string = list_string.replace(new RegExp(`\\n{2,}(?=${end_canary})`), '\n');
-		list_string = list_string.replace(new RegExp(`(\\n)?(^[ \\t]*)(?:${marker_any})[ \\t]+((?:.|\\n)+?(\\n{1,2}))(?=\\n*(${end_canary}|\\2(${marker_any})[ \\t]+))`, 'gm'), list_item_recurse);
-		list_level--;
 
-		return remove_canaries(list_string);
-	}
+	function run_block_gamut(text) {
+		text = do_headers(text);
+		text = do_lists(text);
+		text = do_code_blocks(text);
+		text = do_blockquotes(text);
+		text = form_paragraphs(text);
 	
+		return text;
+	}
+
+	function run_span_gamut(text) {
+		text = do_code_spans(text);
+		text = do_anchors(text);
+		text = do_italics_and_bold(text);
+		return text;
+	}
+
+	function do_anchors(text) {
+		let re = new RegExp(`\\[(${nested_brackets})\\]\\([ \\t]*<?(.*?)>?[ \\t]*(?:(['"])(.*?)\\3)?\\)`, 'gs');
+		return text.replace(re, (match, link_text, url, quote, title) => '[url=' + escape_font_styles(url) + ']' + link_text + '[/url]');
+	}
+
+	function do_headers(text) {
+		return text.replace(/^(\#{1,6})[ \t]*(.+?)[ \t]*\#*\n+/gm, (match, hashes, content) => {
+			let size = 220 - 20 * hashes.length;
+			return `[size=${size}][b]` + run_span_gamut(content) + '[/b][/size]\n\n';
+		});
+	}
+
 	function do_lists(text) {
 		const marker_ul = '[*+-]';
 		const marker_ol = '\\d+[.]';
 		const marker_any = `(?:${marker_ul}|${marker_ol})`;
 		const ul_re = new RegExp(marker_ul);
-	
 		const whole_list_re = `(([ ]{0,${less_than_tab}}(${marker_any})[ \\t]+)(?:.|\\n)+?(?:${end_canary}|\\n{2,}(?=\\S)(?![ \\t]*${marker_any}[ \\t]+)))`;
-		
 		const any_list = new RegExp((list_level ? `(^${begin_canary}?)` : `(\\n\\n|${begin_canary}\\n?)`) + whole_list_re, 'gm');
-		
+
 		text = add_canaries(text);
 		text = text.replace(any_list, (match, bol, whole_list, with_padding, first_marker) => {
 			whole_list = remove_canaries(whole_list);
@@ -128,10 +132,62 @@ software, even if advised of the possibility of such damage.
 		return remove_canaries(text);
 	}
 
-	function detab(text) {
-		return text.replace(/(.*?)\t/g, (match, not_tab) => not_tab + ' '.repeat(tab_width - not_tab.length % tab_width));
+	function list_item_recurse(match, leading_line, leading_whitespace, content) {
+		let item = remove_canaries(content);
+
+		if (leading_line || item.match(/\n{2,}/))
+			item = run_block_gamut(outdent(item));
+		else {
+			item = do_lists(outdent(item));
+			item = item.replace(/\n$/, '');
+			item = run_span_gamut(item);
+		}
+
+		return '[' + char_hash.get('*') + '] ' + item + '\n';
 	}
-	
+
+	function process_list_items(list_string, marker_any) {
+		list_level++;
+		list_string = list_string + end_canary;
+		list_string = list_string.replace(new RegExp(`\\n{2,}(?=${end_canary})`), '\n');
+		list_string = list_string.replace(new RegExp(`(\\n)?(^[ \\t]*)(?:${marker_any})[ \\t]+((?:.|\\n)+?(\\n{1,2}))(?=\\n*(${end_canary}|\\2(${marker_any})[ \\t]+))`, 'gm'), list_item_recurse);
+		list_level--;
+		return remove_canaries(list_string);
+	}
+
+	function do_code_blocks(text) {
+		const re = new RegExp(`(?:\\n\\n|${begin_canary})((?:(?:[ ]{${tab_width}}|\\t).*\\n+)+)((?=^[ ]{0,${tab_width}}\\S)|\\n${end_canary})`, 'gm');
+
+		text = add_canaries(text);
+		text = text.replace(re, (match, codeblock) => {
+			codeblock = remove_canaries(codeblock);
+			codeblock = detab(encode_code(outdent(codeblock)));
+			codeblock = codeblock.replace(/^\n+/, '');
+			codeblock = codeblock.replace(/\s+\n*$/, '');
+			return '\n\n[code]\n' + codeblock + '\n[/code]\n\n';
+		});
+
+		return remove_canaries(text);
+	}
+
+	function do_code_spans(text) {
+		return text.replace(new RegExp('(`+)(.*?[^`])\\1(?!`)', 'gs'), (match, opener, codeblock) => {
+			codeblock = codeblock.replace(/^[ \t]*/g, '');
+			codeblock = codeblock.replace(/[ \t]*$/g, '');
+			return '[code]' + codeblock + '[/code]';
+		});
+	}
+
+	function encode_code(text) {
+		return text.replace(special_re, c => char_hash.get(c));
+	}
+
+	function do_italics_and_bold(text) {
+		text = text.replace(/(\*\*|__)(?=\S)(.+?[*_]*?\S)\1/gs, '[b]$2[/b]');
+		text = text.replace(/(\*|_)(?=\S)(.+?\S)\1/gs, '[i]$2[/i]');
+		return text;
+	}
+
 	function do_blockquotes(text) {
 		return text.replace(/(^[ \t]*>[ \t]?.+\n(.+\n)*\n*)+/gm, bq => {
 			bq = bq.replace(/^[ \t]*>[ \t]?/gm, '');
@@ -144,65 +200,9 @@ software, even if advised of the possibility of such damage.
 		});
 	}
 
-	function encode_code(text) {
-		return text.replace(special_re, c => char_hash.get(c));
-	}
-
-	function do_code_blocks(text) {
-		const re = new RegExp(`(?:\\n\\n|${begin_canary})((?:(?:[ ]{${tab_width}}|\\t).*\\n+)+)((?=^[ ]{0,${tab_width}}\\S)|\\n${end_canary})`, 'gm');
-		text = add_canaries(text);
-		text = text.replace(re, (match, codeblock) => {
-			codeblock = remove_canaries(codeblock);
-			codeblock = detab(encode_code(outdent(codeblock)));
-			codeblock = codeblock.replace(/^\n+/, '');
-			codeblock = codeblock.replace(/\s+\n*$/, '');
-			return '\n\n[code]\n' + codeblock + '\n[/code]\n\n';
-		});
-	
-		return remove_canaries(text);
-	}
-	
-	function do_code_spans(text) {
-		return text.replace(new RegExp('(`+)(.*?[^`])\\1(?!`)', 'gs'), (match, opener, codeblock) => {
-			codeblock = codeblock.replace(/^[ \t]*/g, '');
-			codeblock = codeblock.replace(/[ \t]*$/g, '');
-			return '[code]' + codeblock + '[/code]';
-		});
-	}
-	
-	function do_italics_and_bold(text) {
-		text = text.replace(/(\*\*|__)(?=\S)(.+?[*_]*?\S)\1/gs, '[b]$2[/b]');
-		text = text.replace(/(\*|_)(?=\S)(.+?\S)\1/gs, '[i]$2[/i]');
-		return text;
-	}
-	
 	function form_paragraphs(text) {
 		text = text.replace(/^\n+/, '').replace(/\n+$/, '');
 		return text.split(/\n{2,}/).map(run_span_gamut).join('\n\n');
-	}
-	
-	function run_block_gamut(text) {
-		
-		// headings
-		text = text.replace(/^(\#{1,6})[ \t]*(.+?)[ \t]*\#*\n+/gm, (match, hashes, content) => {
-			let size = 220 - 20 * hashes.length;
-			return `[size=${size}][b]` + run_span_gamut(content) + '[/b][/size]\n\n';
-		});
-	
-		text = do_lists(text);
-		text = do_code_blocks(text);
-		text = do_blockquotes(text);
-		text = form_paragraphs(text);
-	
-		return text;
-	}
-	
-	function run_span_gamut(text) {
-		text = do_code_spans(text);
-		text = do_anchors(text);
-		text = do_italics_and_bold(text);
-		
-		return text;
 	}
 
 	function unescape_special_chars(text) {
@@ -212,14 +212,13 @@ software, even if advised of the possibility of such damage.
 		return text;
 	}
 
-	function markdown(text) {
-		text += '\n\n';
-		text = detab(text);
-		text = text.replace(/^[ \t]+$/gm, '');
-		text = run_block_gamut(text);
-		text = unescape_special_chars(text);
-		return text + '\n';
+	function outdent(text) {
+		return text.replace(new RegExp(`^(\\t|[ ]{1,${tab_width}})`, 'gm'), '');
 	}
-	
+
+	function detab(text) {
+		return text.replace(/(.*?)\t/g, (match, not_tab) => not_tab + ' '.repeat(tab_width - not_tab.length % tab_width));
+	}
+
 	draft.content = markdown(draft.content);
 })();
