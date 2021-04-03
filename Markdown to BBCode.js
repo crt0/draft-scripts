@@ -74,16 +74,6 @@ software, even if advised of the possibility of such damage.
 		return text.replace(/[*_]/g, match => char_hash.get(match));
 	}
 
-	function prompt(message) {
-		let p = Prompt.create();
-		p.message = message;
-		p.addButton('OK');
-		if (!p.show()) {
-			context.cancel();
-			exit;
-		}
-	}
-
 	// Gruber: "Main function. The order in which other subs are
 	// called here is essential."
 	function markdown(text) {
