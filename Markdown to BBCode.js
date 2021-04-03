@@ -41,13 +41,20 @@ software, even if advised of the possibility of such damage.
 	const less_than_tab = tab_width - 1;
 	let list_level = 0;
 
-	const begin_canary = '\u0002';
-	const end_canary = '\u0005';
-	function add_canaries(text) {
-		return begin_canary + text + end_canary;
+	// Gruber makes heavy use of Perl regular expression features \A,
+	// \Z, and \z, which don't exist in Javascript. We emulate these
+	// features by inserting "tracers," reserved Unicode characters
+	// that aren't likely to appear in the user's text, at the
+	// beginning and end of strings, and then match on those. We have
+	// to be careful because we might match them accidentally (with
+	// ^. for example).
+	const begin_tracer = '\uE000';
+	const end_tracer = '\uE001';
+	function add_tracers(text) {
+		return begin_tracer + text + end_tracer;
 	}
-	function remove_canaries(text) {
-		return text.replace(new RegExp('[' + begin_canary + end_canary + ']', 'g'), '');
+	function remove_tracers(text) {
+		return text.replace(new RegExp('[' + begin_tracer + end_tracer + ']', 'g'), '');
 	}
 
 	const special_chars = '\\`*_{}[]()>#+-.!';
@@ -95,9 +102,26 @@ software, even if advised of the possibility of such damage.
 
 	function run_span_gamut(text) {
 		text = do_code_spans(text);
+		text = escape_special_chars(text);
 		text = do_anchors(text);
 		text = do_italics_and_bold(text);
 		return text;
+	}
+
+	function escape_special_chars(text) {
+		let tokens = tokenize_html(text);
+		let result = '';
+
+		tokens.forEach(item => {
+			if (item[0] === 'tag') {
+				item[1] = item[1].replace(/[*_]/g, c => char_hash.get(c));
+				result += item[1];
+			}
+			else
+				result += encode_backslash_escapes(item[1]);
+		});
+
+		return result;
 	}
 
 	function do_anchors(text) {
@@ -117,27 +141,27 @@ software, even if advised of the possibility of such damage.
 		const marker_ol = '\\d+[.]';
 		const marker_any = `(?:${marker_ul}|${marker_ol})`;
 		const ul_re = new RegExp(marker_ul);
-		const whole_list_re = `(([ ]{0,${less_than_tab}}(${marker_any})[ \\t]+)(?:.|\\n)+?(?:${end_canary}|\\n{2,}(?=\\S)(?![ \\t]*${marker_any}[ \\t]+)))`;
-		const any_list = new RegExp((list_level ? `(^${begin_canary}?)` : `(\\n\\n|${begin_canary}\\n?)`) + whole_list_re, 'gm');
+		const whole_list_re = `(([ ]{0,${less_than_tab}}(${marker_any})[ \\t]+)(?:.|\\n)+?(?:${end_tracer}|\\n{2,}(?=\\S)(?![ \\t]*${marker_any}[ \\t]+)))`;
+		const any_list = new RegExp((list_level ? `(^${begin_tracer}?)` : `(\\n\\n|${begin_tracer}\\n?)`) + whole_list_re, 'gm');
 
-		text = add_canaries(text);
+		text = add_tracers(text);
 		text = text.replace(any_list, (match, bol, whole_list, with_padding, first_marker) => {
-			whole_list = remove_canaries(whole_list);
+			whole_list = remove_tracers(whole_list);
 			whole_list = whole_list.replace(/\n{2,}/g, '\n\n\n');
 			let result = process_list_items(whole_list, marker_any);
 			let list_tag = first_marker.match(ul_re) ? 'list' : 'list=1';
 			result = `[${list_tag}]\n` + result + '[/list]\n';
-			bol = remove_canaries(bol);
+			bol = remove_tracers(bol);
 			if (bol === '\n\n')
 				result = bol + result;
 			return result;
 		});
 
-		return remove_canaries(text);
+		return remove_tracers(text);
 	}
 
 	function list_item_recurse(match, leading_line, leading_whitespace, content) {
-		let item = remove_canaries(content);
+		let item = remove_tracers(content);
 
 		if (leading_line || item.match(/\n{2,}/))
 			item = run_block_gamut(outdent(item));
@@ -152,26 +176,26 @@ software, even if advised of the possibility of such damage.
 
 	function process_list_items(list_string, marker_any) {
 		list_level++;
-		list_string = list_string + end_canary;
-		list_string = list_string.replace(new RegExp(`\\n{2,}(?=${end_canary})`), '\n');
-		list_string = list_string.replace(new RegExp(`(\\n)?(^[ \\t]*)(?:${marker_any})[ \\t]+((?:.|\\n)+?(\\n{1,2}))(?=\\n*(${end_canary}|\\2(${marker_any})[ \\t]+))`, 'gm'), list_item_recurse);
+		list_string = list_string + end_tracer;
+		list_string = list_string.replace(new RegExp(`\\n{2,}(?=${end_tracer})`), '\n');
+		list_string = list_string.replace(new RegExp(`(\\n)?(^[ \\t]*)(?:${marker_any})[ \\t]+((?:.|\\n)+?(\\n{1,2}))(?=\\n*(${end_tracer}|\\2(${marker_any})[ \\t]+))`, 'gm'), list_item_recurse);
 		list_level--;
-		return remove_canaries(list_string);
+		return remove_tracers(list_string);
 	}
 
 	function do_code_blocks(text) {
-		const re = new RegExp(`(?:\\n\\n|${begin_canary})((?:(?:[ ]{${tab_width}}|\\t).*\\n+)+)((?=^[ ]{0,${tab_width}}\\S)|\\n${end_canary})`, 'gm');
+		const re = new RegExp(`(?:\\n\\n|${begin_tracer})((?:(?:[ ]{${tab_width}}|\\t).*\\n+)+)((?=^[ ]{0,${tab_width}}\\S)|\\n${end_tracer})`, 'gm');
 
-		text = add_canaries(text);
+		text = add_tracers(text);
 		text = text.replace(re, (match, codeblock) => {
-			codeblock = remove_canaries(codeblock);
+			codeblock = remove_tracers(codeblock);
 			codeblock = detab(encode_code(outdent(codeblock)));
 			codeblock = codeblock.replace(/^\n+/, '');
 			codeblock = codeblock.replace(/\s+\n*$/, '');
 			return '\n\n[code]\n' + codeblock + '\n[/code]\n\n';
 		});
 
-		return remove_canaries(text);
+		return remove_tracers(text);
 	}
 
 	function do_code_spans(text) {
@@ -206,7 +230,27 @@ software, even if advised of the possibility of such damage.
 
 	function form_paragraphs(text) {
 		text = text.replace(/^\n+/, '').replace(/\n+$/, '');
-		return text.split(/\n{2,}/).map(run_span_gamut).join('\n\n');
+		return text.split(/\n{2,}/).map(t => run_span_gamut(t).replace(/^[ \t]*/, '')).join('\n\n');
+	}
+
+	function encode_backslash_escapes(text) {
+		return text
+			.replace(/\\\\/g, char_hash.get('\\'))
+			.replace(/\\'/g , char_hash.get('`' ))
+			.replace(/\\\*/g, char_hash.get('*' ))
+			.replace(/\\_/g , char_hash.get('_' ))
+			.replace(/\\\{/g, char_hash.get('{' ))
+			.replace(/\\\}/g, char_hash.get('}' ))
+			.replace(/\\\[/g, char_hash.get('[' ))
+			.replace(/\\\]/g, char_hash.get(']' ))
+			.replace(/\\\(/g, char_hash.get('(' ))
+			.replace(/\\\)/g, char_hash.get(')' ))
+			.replace(/\\>/g , char_hash.get('>' ))
+			.replace(/\\\#/g, char_hash.get('#' ))
+			.replace(/\\\+/g, char_hash.get('+' ))
+			.replace(/\\\-/g, char_hash.get('-' ))
+			.replace(/\\\./g, char_hash.get('.' ))
+			.replace(/\\!/g,  char_hash.get('!' ));
 	}
 
 	function unescape_special_chars(text) {
@@ -214,6 +258,32 @@ software, even if advised of the possibility of such damage.
 			text = text.replace(new RegExp(v, 'g'), k);
 		});
 		return text;
+	}
+
+	function tokenize_html(text) {
+		let pos = 0;
+		let len = text.length;
+		let tokens = [];
+
+		let depth = 6;
+		let nested_tags = Array(depth).fill('(?:<[a-z/!$](?:[^<>]').join('|') + ')*>)'.repeat(depth);
+		let re = new RegExp(`(?:<!(--(?:.|\\n)*?--\\s*)+>)|(?:<\?(?:.|\\n)*?\\?>)|${nested_tags}`, 'gi');
+
+		let whole_tag = '';
+		let found;
+		while ((found = re.exec(text))) {
+			let whole_tag = found[0];
+			let sec_start = found.index;
+			let tag_start = sec_start - whole_tag.length;
+			if (pos < tag_start)
+				tokens.push(['text', text.substr(pos, tag_start - pos)]);
+			tokens.push(['tag', whole_tag]);
+			pos = sec_start;
+		}
+		if (pos < len)
+			tokens.push(['tag', text.substr(pos, len - pos)]);
+
+		return tokens;
 	}
 
 	function outdent(text) {
@@ -224,5 +294,5 @@ software, even if advised of the possibility of such damage.
 		return text.replace(/(.*?)\t/g, (match, not_tab) => not_tab + ' '.repeat(tab_width - not_tab.length % tab_width));
 	}
 
-	draft.content = markdown(draft.content);
+	app.setClipboard(markdown(draft.content));
 })();
