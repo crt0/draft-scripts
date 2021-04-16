@@ -5,16 +5,6 @@
 // draft.
 
 (() => { // anonymous function prevents variable conflicts with other Drafts actions
-
-	async function update_draft(draft) {
-		draft.update();
-	}
-	
-	async function reload_draft(draft) {
-		await update_draft();
-		editor.load(draft);
-		editor.activate();
-	}
 	
 	// create temp workspace to query drafts
 	let workspace = Workspace.create();
