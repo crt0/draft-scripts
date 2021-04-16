@@ -10,16 +10,8 @@
 // - If no recent draft is selected, create an empty draft of the same format
 
 (() => { // anonymous function prevents variable conflicts with other Drafts actions
-	function filter_unique_drafts(draft, index, self) {
-		return self.map(d => d.displayTitle).indexOf(draft.displayTitle) === index;
-	}
-	
-	function filter_draft_by_title(draft, index, self) {
-		return draft.displayTitle == this;
-	}
-	
 	function sort_drafts_by_title(a, b) {
-		return ('' + a.displayTitle).localeCompare(b.displayTitle);
+		return ('' + a[0]).localeCompare(b[0]);
 	}
 	
 	function bring_section_forward(previous_content, section, callback) {
@@ -39,7 +31,7 @@
 	workspace.startDate = start;
 	
 	// get list of drafts in workspace
-	let meeting_drafts = workspace.query("all").sort(sort_drafts_by_title).filter(filter_unique_drafts);
+	let meeting_drafts = new Map(workspace.query('all').filter(d => !d.isTrashed).map(d => [d.displayTitle, d]).sort(sort_drafts_by_title));
 	
 	let prompt = Prompt.create();
 	prompt.title = "New Meeting Notes Draft";
