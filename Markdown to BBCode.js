@@ -133,6 +133,7 @@ software, even if advised of the possibility of such damage.
 		return text.replace(re, (match, link_text, url, quote, title) => '[url=' + escape_font_styles(url) + ']' + link_text + '[/url]');
 	}
 
+	// Turn Markdown image shortcuts into <img> tags
 	// Setext-style headers aren't supported, just ATX-style
 	function do_headers(text) {
 		return text.replace(/^(\#{1,6})[ \t]*(.+?)[ \t]*\#*\n+/gm, (match, hashes, content) => {
