@@ -24,7 +24,7 @@
 	
 	// get clipboard and test if it's a URL
 	var clip = app.getClipboard();
-	var link = "";
+	var link = '';
 	if (isUrl(clip)) {
 		link = clip;
 	}
@@ -33,11 +33,11 @@
 	var selRange = editor.getSelectedRange();
 	
 	if (!sel || sel.length == 0) {
-		editor.setSelectedText("[[" + link + "][]]");
+		editor.setSelectedText('[[' + link + '][]]');
 		editor.setSelectedRange(selRange[0] + link.length + 4, 0);
 	}
 	else {
-		editor.setSelectedText("[[" + link + "][" + sel + "]]");
+		editor.setSelectedText('[[' + link + '][' + sel + ']]');
 		editor.setSelectedRange(selRange[0] + selRange[1] + link.length + 6, 0);
 	}
 

@@ -15,29 +15,29 @@
 	}
 	
 	function bring_section_forward(previous_content, section, callback) {
-		let matches = previous_content.match(new RegExp("^## " + section + ".*?(?=^## )", "ms"));
-		return matches ? callback(matches[0]) : "";
+		let matches = previous_content.match(new RegExp('^## ' + section + '.*?(?=^## )', 'ms'));
+		return matches ? callback(matches[0]) : '';
 	}
 	
 	// create temp workspace to query drafts
 	let workspace = Workspace.create();
-	workspace.tagFilter = "meeting";
-	workspace.setAllSort("created", true);
+	workspace.tagFilter = 'meeting';
+	workspace.setAllSort('created');
 	
 	let start = new QueryDate();
-	start.field = "created";
-	start.type = "relative";
-	start.days = -180;
+	start.field = 'created';
+	start.type = 'relative';
+	start.days = -150;
 	workspace.startDate = start;
 	
 	// get list of drafts in workspace
 	let meeting_drafts = new Map(workspace.query('all').filter(d => !d.isTrashed).map(d => [d.displayTitle, d]).sort(sort_drafts_by_title));
 	
 	let prompt = Prompt.create();
-	prompt.title = "New Meeting Notes Draft";
-	prompt.message = "Optionally select a previous meeting as a template.";
-	prompt.addSelect("meeting", "Meeting", meeting_drafts.map(draft => draft.displayTitle), [], false);
-	prompt.addButton("OK");
+	prompt.title = 'New Meeting Notes Draft';
+	prompt.message = 'Optionally select a previous meeting as a template.';
+	prompt.addSelect('meeting', 'Meeting', Array.from(meeting_drafts.keys()), [], false);
+	prompt.addButton('OK');
 	
 	let ok_clicked = prompt.show();
 	if (!ok_clicked) {
@@ -45,10 +45,10 @@
 		return;
 	}
 	
-	let new_content = "# \n\n";
+	let new_content = '# \n\n';
 	let new_tags;
-	if (prompt.fieldValues["meeting"][0]) {
-		let selected_draft = meeting_drafts.find(filter_draft_by_title, prompt.fieldValues["meeting"][0]);
+	if (prompt.fieldValues.meeting[0]) {
+		let selected_draft = meeting_drafts.get(prompt.fieldValues.meeting[0]);
 		if (!selected_draft) {
 			alert("Can't find draft");
 			context.fail();
@@ -58,13 +58,13 @@
 		new_title = selected_draft.title;
 		new_tags = selected_draft.tags;
 
-		new_content = new_title + "\n\n";
+		new_content = new_title + '\n\n';
 
 		// extract attendees & uncheck boxes
-		new_content += bring_section_forward(most_recent_content, "Attendees", string => string.replace(/^- \[x\] /gm, "- [ ] "));
+		new_content += bring_section_forward(most_recent_content, 'Attendees', string => string.replace(/^- \[x\] /gm, '- [ ] '));
 
 		// extract other sections
-		["Background", "Reminders", "Milestones", "Projects"].forEach(heading =>
+		['Background', 'Reminders', 'Milestones', 'Projects'].forEach(heading =>
 			new_content += bring_section_forward(most_recent_content, heading, string => string)
 		);
 	}
@@ -84,7 +84,7 @@
 - 
 
 `;
-		new_tags = ["meeting"];
+		new_tags = ['meeting'];
 	}
 	
 	new_content += `## 
