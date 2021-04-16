@@ -63,9 +63,14 @@
 			context.fail("Must choose a draft or specify a name for a new one");
 			return;
 		}
-		draft = brewday_drafts[prompt.fieldValues["beers"][0].split(". ")[0]];
-		draft.content = draft.title + "\n\n" + template + draft.bodyPreview(Infinity);
-		draft.update();
+		const draft_number = selected_beers[0].split('. ')[0];
+		if (!draft_number) {
+			context.fail("Can't parse selection");
+			return;
+		}
+
+		beer_draft = brewday_drafts[draft_number];
+		editor.setTextInRange(beer_draft.title.length + 2, 0, template);
 	}
 
 	editor.load(beer_draft);
