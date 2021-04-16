@@ -10,13 +10,16 @@
 			this.addTag(tag);
 	}
 
+	function sort_drafts_by_title(a, b) {
+		return ('' + a.displayTitle).localeCompare(b.displayTitle);
+	}
+
 	// create temp workspace to query drafts
 	let workspace = Workspace.create();
-	workspace.tagFilter = "template";
-	workspace.setAllSort("name", false, true);
+	workspace.tagFilter = 'template';
 	// get list of drafts in workspace
-	let drafts = workspace.query("all");
-	
+	let drafts = new Map(workspace.query('all').sort(sort_drafts_by_title).map(d => [d.displayTitle, d]));
+
 	// check if we found any valid templates
 	if (drafts.size == 0) {
 		alert("No templates found. To make templates available to this action, create a draft with the template content and assign it the tag 'template'.");
@@ -27,18 +30,12 @@
 	let p = Prompt.create();
 	p.title = 'New Draft with Template';
 	p.message = "Select templates. A new draft will be created based the templates selected.";
-	
-	let ix = 0;
-	let identifiers = [];
-	for (let d of drafts) {
-		identifiers[ix] = ix + ". " + d.title;
-		ix++;
-	}
 
 	p.addSelect('templates', 'Templates', Array.from(drafts.keys()), [], true);
 	p.addButton('OK');
 
 	if (!p.show()) {
+		context.cancel();
 		return false;
 	}
 
