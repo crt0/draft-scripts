@@ -106,6 +106,7 @@ software, even if advised of the possibility of such damage.
 	function run_span_gamut(text) {
 		text = do_code_spans(text);
 		text = escape_special_chars(text);
+		text = do_images(text);
 		text = do_anchors(text);
 		text = do_italics_and_bold(text);
 		return text;
@@ -131,6 +132,23 @@ software, even if advised of the possibility of such damage.
 	function do_anchors(text) {
 		let re = new RegExp(`\\[(${nested_brackets})\\]\\([ \\t]*<?(.*?)>?[ \\t]*(?:(['"])(.*?)\\3)?\\)`, 'gs');
 		return text.replace(re, (match, link_text, url, quote, title) => '[url=' + escape_font_styles(url) + ']' + link_text + '[/url]');
+	}
+
+	function do_images(text) {
+		return text.replace(/!\[(.*?)\]\([ \t]*<?(\S+?)>?[ \t]*(?:(['"])(.*?)\3[ \t]*)?\)/gs, (match, alt, url, quote, title) => {
+			alt = alt.replace(/"/g, '&quot;');
+			url = url.replace(/[*_]/g, c => char_hash.get(c));
+
+			let result = `[img alt="${alt}"`;
+			if (title) {
+				title = title.replace(/"/g, '&quot;');
+				title = title.replace(/[*_]/g, c => char_hash.get(c));
+				result += ` title="${title}"`;
+			}
+			result += `]${url}[/img]`;
+			
+			return result;
+		});
 	}
 
 	// Turn Markdown image shortcuts into <img> tags
