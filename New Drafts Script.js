@@ -1,4 +1,4 @@
 (() => {
-	draft.syntax = Syntax.find('builtIn', 'JavaScript');
-	editor.setSelectedText('(() => {\n\t\n})();\n');
+    draft.syntax = Syntax.find('builtIn', 'JavaScript');
+    editor.setSelectedText('(() => {\n\t\n})();\n');
 })();
