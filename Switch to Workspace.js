@@ -6,11 +6,4 @@
 		return;
 	}
 	app.applyWorkspace(workspace);
-
-	if (device.model !== 'iPhone') {
-		if (!app.isActionListVisible)
-			app.showActionList();
-		if (!app.isDraftListVisible)
-			app.showDraftList();
-	}
 })();
