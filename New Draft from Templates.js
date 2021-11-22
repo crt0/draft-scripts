@@ -71,8 +71,7 @@
         }
     }
 
-    let macros = [...template.matchAll(/«(.*?)[|»]/g)]
-        .map(function(x) { return x[1] });
+    let macros = [...template.matchAll(/«(.*?)[|»]/g)].map(x => x[1]);
     if (macros != null && macros.length > 0) {
         const date_options = {
             weekday: 'long',

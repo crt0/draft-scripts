@@ -7,11 +7,11 @@
 
 (() => {
     const base_url = 'omnifocus://x-callback-url/paste';
+    const permalink = draft.permalink;
     let taskpaper = '';
     let state = 'body';
     let index = 0;
     let tick = 0;
-    let permalink = draft.permalink;
     let match;
     draft.lines.forEach(function (line) {
         switch (state) {
