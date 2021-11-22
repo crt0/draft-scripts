@@ -7,9 +7,7 @@
                      "action's BEER_LIST_UUID variable");
         return;
     }
-    const styles = new Map(beer_list.content
-                                    .split('\n')
-                                    .map(line => line.split(': ', 2)));
+    const styles = new Map(beer_list.lines.map(line => line.split(': ', 2)));
     const styles_array = Array.from(styles.keys());
 
     let prompt = Prompt.create();
