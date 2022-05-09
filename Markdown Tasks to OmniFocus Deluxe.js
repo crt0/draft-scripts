@@ -55,4 +55,7 @@
         }
         index += line.length + 1;
     });
+
+    if (state === 'task')
+        create_task();
 })();
