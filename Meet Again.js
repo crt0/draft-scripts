@@ -70,7 +70,8 @@
                                      s => s.replace(/^- \[x\] /gm, '- [ ] '));
 
         // extract other sections
-        ['Background', 'Reminders', 'Milestones', 'Projects'] .forEach(
+        ['Background', 'Reminders', 'Milestones', 'Projects',
+         'MAP Goals'].forEach(
             function (heading) {
                 new_content += bring_forward(latest_content, heading,
                                              string => string);
