@@ -16,7 +16,8 @@
 
     function bring_forward(previous_content, section, callback) {
         let matches = previous_content
-            .match(new RegExp('^## ' + section + '.*?(?=^## )', 'ms'));
+            .match(new RegExp('^## ' + section + '.*?(?=^## |$(?![\r\n]))',
+                              'ms'));
         return matches ? callback(matches[0]) : '';
     }
 
