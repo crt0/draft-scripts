@@ -54,19 +54,27 @@
     let d = Draft.create();
 
     // get the selected template draft
+    const multi = templates.length > 1;
     let template = '';
+    if (multi) {
+        template = '\n';
+    }
     let first_template = true;
     for (let selected of templates) {
-        let template_draft = drafts.get(selected);
-        if (!template_draft) {
+        let td = drafts.get(selected);
+        if (!td) {
             context.fail(selected + ': template draft not found');
             return false;
         }
-        template += template_draft.content + '\n';
+        const body = td.content.substring(td.content.indexOf("\n"));
+        if (multi) {
+            template += '\n#';
+        }
+        template += td.content;
 
         if (first_template) {
-            d.languageGrammar = template_draft.languageGrammar;
-            template_draft.tags.forEach(add_tag_except_template, d);
+            d.languageGrammar = td.languageGrammar;
+            td.tags.forEach(add_tag_except_template, d);
             first_template = false;
         }
     }
