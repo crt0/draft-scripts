@@ -53,6 +53,7 @@
 
     let new_content = '# \n\n';
     let new_tags;
+    let cursor = 0;
     if (prompt.fieldValues.meeting[0]) {
         let selected_draft = meeting_drafts.get(prompt.fieldValues.meeting[0]);
         if (!selected_draft) {
@@ -69,6 +70,13 @@
         // extract attendees & uncheck boxes
         new_content += bring_forward(latest_content, 'Attendees',
                                      s => s.replace(/^- \[x\] /gm, '- [ ] '));
+
+        // then a space for new content where we'll locate the cursor
+        new_content += `## 
+- 
+
+`;
+        cursor = new_content.length - 5;
 
         // extract other sections
         ['Background', 'Reminders', 'Milestones', 'Projects',
@@ -98,10 +106,6 @@
         new_tags = ['meeting'];
     }
 
-    new_content += `## 
-- 
-`;
-
     // create the new draft
     let new_draft = Draft.create();
     new_tags.forEach(tag => new_draft.addTag(tag));
@@ -110,5 +114,6 @@
 
     // bring it up in Drafts
     editor.load(new_draft);
+    editor.setSelectedRange(cursor, 0);
     editor.activate();
 })();
