@@ -71,6 +71,10 @@
         new_content += bring_forward(latest_content, 'Attendees',
                                      s => s.replace(/^- \[x\] /gm, '- [ ] '));
 
+        // put Background first, if there is any
+        new_content += bring_forward(latest_content, 'Background',
+                                     string => string);
+
         // then a space for new content where we'll locate the cursor
         new_content += `## 
 - 
@@ -79,8 +83,7 @@
         cursor = new_content.length - 5;
 
         // extract other sections
-        ['Background', 'Reminders', 'Milestones', 'Projects',
-         'MAP Goals'].forEach(
+        ['Projects', 'Reminders', 'Milestones', 'MAP Goals'].forEach(
             function (heading) {
                 new_content += bring_forward(latest_content, heading,
                                              string => string);
@@ -96,10 +99,16 @@
 ## Background
 - 
 
-## Reminders
+## 
 - 
 
-## Milestones
+`;
+        cursor = new_content.length - 5;
+
+        new_content += `## Milestones
+- 
+
+## Reminders
 - 
 
 `;
