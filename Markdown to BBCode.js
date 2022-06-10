@@ -108,6 +108,7 @@ software, even if advised of the possibility of such damage.
 		text = escape_special_chars(text);
 		text = do_images(text);
 		text = do_anchors(text);
+		text = unescape_special_chars(text);
 		text = do_italics_and_bold(text);
 		return text;
 	}
@@ -204,7 +205,7 @@ software, even if advised of the possibility of such damage.
 			item = run_span_gamut(item);
 		}
 
-		return '[' + char_hash.get('*') + '] ' + item + '\n';
+		return '[li]' + item + '[/li]\n';
 	}
 
 	// Gruber: "Process the contents of a single ordered or unordered
