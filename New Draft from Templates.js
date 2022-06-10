@@ -121,7 +121,7 @@
             const type = key.split(' ')[0];
             let value = pp.fieldValues['var' + String(i)];
             if (type === 'Date')
-                value = value.toLocaleDateString('en-us', date_options);
+                value = value.toLocaleDateString(undefined, date_options);
             template = template.replaceAll('«' + key + '»', value)
                                .replaceAll('«' + key + '|u»',
                                            encodeURIComponent(value));
