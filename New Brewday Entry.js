@@ -19,12 +19,6 @@
     p.message = 'Select draft. A new entry will be created in that draft. '
       + 'If no draft is selected, a new draft will be created.';
 
-    let ix = 0;
-    let identifiers = [];
-    for (let d of brewday_drafts) {
-        identifiers[ix] = ix + '. ' + d.displayTitle;
-        ix++;
-    }
     p.addPicker('beers', 'Beers', [brewday_drafts.map(d => d.displayTitle)]);
     p.addTextField('new_beer', 'New Beer', '');
     p.addDatePicker('brewdate', 'Brew Date', new Date(), {mode: 'date'})
@@ -69,16 +63,11 @@
                          + 'one');
             return;
         }
-        const draft_number = selected_beers[0].split('. ')[0];
-        if (!draft_number) {
-            context.fail("Can't parse selection");
-            return;
-        }
 
-        beer_draft = brewday_drafts[draft_number];
+        beer_draft = brewday_drafts[selected_beers[0]];
         editor.load(beer_draft);
         editor.setSelectedRange(beer_draft.title.length + 2, 0);
-        editor.setSelectedText(template);
+        editor.setSelectedText(section);
     }
 
     return true;
