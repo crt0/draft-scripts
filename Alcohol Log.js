@@ -37,12 +37,20 @@
         return;
     }
 
-    const f = new Intl.DateTimeFormat('en-CA', { year:  'numeric',
+    let f = new Intl.DateTimeFormat('en-CA', { year:  'numeric',
                                                  month: 'numeric',
                                                  day:   'numeric'  });
-    const begin_stamp = f.format(adjustDate(p.fieldValues.report_date,
-                                            '-6 days'));
+    const record_stamp = f.format(p.fieldValues.record_date);
+    const begin_stamp = f.format(adjustDate(p.fieldValues.report_date, '-6 days'));
 
+    let report_day;
+    if (f.format(p.fieldValues.report_date) === f.format(today))
+        report_day = 'today';
+    else {
+        f = new Intl.DateTimeFormat('en-US', { weekday: 'long' });
+        report_day = f.format(p.fieldValues.report_date);
+    }
+    
     if (p.buttonPressed === 'record') {
         const type = p.fieldValues.type[0];
         p = Prompt.create();
@@ -57,7 +65,6 @@
             return;
         }
 
-        const record_stamp = f.format(p.fieldValues.record_date);
         const entry = [record_stamp, type,
                        type === 'beer'
                            ? p.fieldValues.beer_abv / beer_default_abv : 1,
@@ -79,7 +86,7 @@
 
     p = Prompt.create();
     p.message = 'Drinks past 7 days: ' + drinks.toFixed(1) +
-          '\nDrinks left today: ' + (max_drinks - drinks).toFixed(1);
+          '\nDrinks left ' + report_day + ': ' + (max_drinks - drinks).toFixed(1);
     p.addButton('OK');
     p.show();
 })();
