@@ -1,13 +1,8 @@
 // Meet Again
 // - Present a list of recent drafts tagged with "meeting"
-// - Copy certain sections from that draft forward, possibly with modifications:
-//     - ## Attendees (clearing checkboxes)
-//     - ## Background
-//     - ## Reminders
-//     - ## Milestones (moving "- New:" to bottom)
-//     - ## Projects
+// - Copy that draft forward, clearing Attendees checkboxes
 // - Preserve all tags on the copied draft
-// - If no recent draft is selected, create an empty draft of the same format
+// - If no recent draft is selected, create an empty draft from a template
 
 (() => { // anonymous function prevents variable conflicts with other actions
     function sort_drafts_by_title(a, b) {
@@ -51,7 +46,7 @@
         return;
     }
 
-    let new_content = '# \n\n';
+    let new_content;
     let new_tags;
     let cursor = 0;
     if (prompt.fieldValues.meeting[0]) {
@@ -62,38 +57,18 @@
             return;
         }
         let latest_content = selected_draft.content;
-        new_title = selected_draft.title;
         new_tags = selected_draft.tags;
 
-        new_content = new_title + '\n\n';
-
-        // extract attendees & uncheck boxes
-        new_content += bring_forward(latest_content, 'Attendees',
-                                     s => s.replace(/^- \[x\] /gm, '- [ ] '));
-
-        // put Background first, if there is any
-        new_content += bring_forward(latest_content, 'Background',
-                                     string => string);
-
-        // then a space for new content where we'll locate the cursor
-        new_content += `## 
-- 
-
-`;
-        cursor = new_content.length - 5;
-
-        // extract other sections
-        ['Projects', 'Reminders', 'Milestones', 'MAP Goals'].forEach(
-            function (heading) {
-                new_content += bring_forward(latest_content, heading,
-                                             string => string);
-            }
-        );
+        new_content =
+          latest_content.replace(/^## Attendees\n(.*?)^#/gms,
+                                 s => s.replace(/^- \[x\] /gm, '- [ ] '))
     }
 
     // if no previous draft was selected, start anew
     else {
-        new_content += `## Attendees
+        new_content += `#
+
+## Attendees
 - [ ] 
 
 ## Background
