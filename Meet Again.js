@@ -66,7 +66,7 @@
 
     // if no previous draft was selected, start anew
     else {
-        new_content += `#
+        new_content = `#
 
 ## Attendees
 - [ ] 
