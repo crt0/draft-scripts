@@ -46,6 +46,7 @@
         return;
     }
 
+    let new_draft;
     let new_content;
     let new_tags;
     let cursor = 0;
@@ -56,12 +57,20 @@
             context.fail();
             return;
         }
-        let latest_content = selected_draft.content;
-        new_tags = selected_draft.tags;
 
-        new_content =
-          latest_content.replace(/^## Attendees\n(.*?)^#/gms,
-                                 s => s.replace(/^- \[x\] /gm, '- [ ] '))
+        if (selected_draft.isArchived) {
+            let latest_content = selected_draft.content;
+            new_tags = selected_draft.tags;
+
+            new_content =
+              latest_content.replace(/^## Attendees\n(.*?)^#/gms,
+                                     s => s.replace(/^- \[x\] /gm, '- [ ] '));
+        }
+
+        else {
+            new_draft = selected_draft;
+            app.displayInfoMessage('Found in Inbox');
+        }
     }
 
     // if no previous draft was selected, start anew
@@ -94,11 +103,12 @@
         new_tags = ['meeting'];
     }
 
-    // create the new draft
-    let new_draft = Draft.create();
-    new_tags.forEach(tag => new_draft.addTag(tag));
-    new_draft.content = new_content;
-    new_draft.update();
+    if (!new_draft) {
+        new_draft = Draft.create();
+        new_tags.forEach(tag => new_draft.addTag(tag));
+        new_draft.content = new_content;
+        new_draft.update();
+    }
 
     // bring it up in Drafts
     editor.load(new_draft);
