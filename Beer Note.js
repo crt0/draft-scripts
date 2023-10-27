@@ -1,10 +1,15 @@
 (() => {
+    function sort_drafts_by_title(a, b) {
+        return ('' + a.displayTitle).localeCompare(b.displayTitle);
+    }
+
     const BEER_STYLES_UUID = '6F02CDFA-0ECE-4407-85FA-37AA9254104B';
 
     let workspace = Workspace.create();
     workspace.tagFilter = 'brewery';
     workspace.setArchiveSort('name');
     let brewery_drafts = new Map(workspace.query('all')
+                                          .sort(sort_drafts_by_title)
                                           .map(d => [d.displayTitle, d]));
 
     const breweries = Array.from(brewery_drafts.keys());
