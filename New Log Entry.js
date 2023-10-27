@@ -1,6 +1,6 @@
-// New Brewday Notes
+// New Log Entry
 //
-// Select from a list of drafts tagged 'brewday' and create a new
+// Select from a list of drafts tagged 'log' and create a new
 // entry in that draft. If no draft is selected, create a new
 // draft.
 
