@@ -27,7 +27,7 @@
     }
 
     let body = '';
-    draft.setTemplateTag('notes_subject', draft.displayTitle + ' notes');
+    draft.setTemplateTag('notes_subject', '[RECAP] ' + draft.displayTitle);
     if (name) {
         body = 'Hi, ' + name +
           '. Thanks for taking the time to meet. Here are my notes.\n';
