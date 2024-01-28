@@ -57,7 +57,8 @@
     let name = '';
     let email = '';
     if (recip_draft) {
-        const pattern = new RegExp('^' + draft.displayTitle + '\\|.*', 'm');
+        const pattern = new RegExp('^' + draft.displayTitle + '\\|.*',
+                                   'm');
         const found = recip_draft.content.match(pattern);
         if (found) {
             const fields = found[0].split(/\|/, 3);
