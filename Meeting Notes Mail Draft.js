@@ -52,8 +52,8 @@
         return {output: output, index: index};
     }
 
-    const [recip_draft] = Draft.query('Mail Notes Recipients', 'archive',
-                                    ['_etc']);
+    const [recip_draft] = Draft.query('title:"Mail Notes Recipients"',
+                                      'archive', ['_etc']);
     let name = '';
     let email = '';
     if (recip_draft) {
