@@ -1,7 +1,6 @@
 (() => { // anonymous function prevents variable conflicts with other actions
     const ME = 'Andrew';
 
-    const recip_drafts = Draft.query('Mail Notes Recipients', 'archive',
     function process_markdown_section(input, index) {
         let nonempty = 0;
         let level = '';
@@ -53,12 +52,13 @@
         return {output: output, index: index};
     }
 
+    const [recip_draft] = Draft.query('Mail Notes Recipients', 'archive',
                                     ['_etc']);
     let name = '';
     let email = '';
-    if (recip_drafts && recip_drafts[0]) {
+    if (recip_draft) {
         const pattern = new RegExp('^' + draft.displayTitle + '\\|.*', 'm');
-        const found = recip_drafts[0].content.match(pattern);
+        const found = recip_draft.content.match(pattern);
         if (found) {
             const fields = found[0].split(/\|/, 3);
             name = fields[1];
