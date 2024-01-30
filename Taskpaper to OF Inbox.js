@@ -46,7 +46,7 @@
         content = content.replace(/^/gm, '- ');
 
     // parse Markdown links
-    let link_re = new RegExp('\\[([^\\[]+)\\]\\(([^)]*)\\)', 'gm');
+    let link_re = new RegExp(, 'gm');
     let links;
     function replace_link(_, p1, p2) {
         links.push(p2);
@@ -54,7 +54,7 @@
     }
     function parse_links(line) {
         links = [];
-        line = line.replace(link_re, replace_link);
+        line = line.replace(/\[([^[]+)\]\(([^)]*)\)/gm, replace_link);
         return [line, ...links];
     }
     content = content.split('\n').flatMap(parse_links).join('\n');
