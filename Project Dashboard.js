@@ -7,9 +7,7 @@
     let meeting_drafts = Draft.query('', 'all', ['meeting'], [], 'created',
                                      true);
     for (draft of meeting_drafts) {
-        let section = draft.content
-                           .match(new RegExp('^## Projects(.*?)(?=^## )',
-                                             'ms'));
+        let section = draft.content.match(/^## Projects(.*?)(?=^## )/ms);
         if (!section) {
             continue;
         }
