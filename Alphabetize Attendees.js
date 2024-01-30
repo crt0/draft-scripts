@@ -2,9 +2,10 @@
     const heading = '## Attendees\n';
 
     function compare_by_surname(a, b) {
-        const a_last = a.match(/[^ ]+$/);
+        const surname_re = /[^ ]+$/;
+        const a_last = a.match(surname_re);
         if (!a_last) return 1;
-        const b_last = b.match(/[^ ]+$/);
+        const b_last = b.match(surname_re);
         if (!b_last) return -1;
         return ('' + a_last[0]).localeCompare(b_last[0]);
     }
