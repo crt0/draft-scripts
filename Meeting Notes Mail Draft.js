@@ -4,11 +4,7 @@
     function process_markdown_section(input, index) {
         let nonempty = 0;
         let level = '';
-
-        let head_re        = new RegExp('^(#+)\\s+');
-        let nonempty_re    = new RegExp('^[^\\s]+');
-        let hidden_item_re = new RegExp('^\\s*\\*\\s');
-        let task_re        = new RegExp('^(\\s*[-+] ){[- x]}\\s+([^\\s])');
+        let head_re = /^(#+)\s+/;
 
         let matches = input[index].match(head_re);
         if (matches)
@@ -16,10 +12,9 @@
         let output = [input[index]];
 
         for (index++; index < input.length; index++) {
-            let nested_re = new RegExp(`^(${level}#+)\\s+`);
             let line = input[index];
 
-            matches = line.match(nested_re);
+            matches = line.match(/^(${level}#+)\s+/);
             if (matches) {
                 let result = process_markdown_section(input, index);
                 if (result.output.length) {
@@ -37,13 +32,13 @@
                 else
                     return {output: [], index: index};
 
-            if (line.match(hidden_item_re))
+            if (line.match(/^\s*\*\s/))
                 continue;
 
-            if (line.match(nonempty_re))
+            if (line.match(/^[^\s]+/))
                 nonempty = 1;
 
-            line = line.replace(task_re, `$1${ME} will `
+            line = line.replace(/^(\s*[-+] ){[- x]}\s+([^\s])/, `$1${ME} will `
                                 + "$2".toLowerCase());
 
             output.push(line);
