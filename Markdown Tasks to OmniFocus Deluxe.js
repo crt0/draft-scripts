@@ -42,7 +42,7 @@
         case 'task':
             match = line.match(/^(\s*)/);
             if (match && match[0].length > indent) {
-                taskpaper += line + '\n';
+                taskpaper += line.replace(/^(\s*)- /, '') + '\n';
                 break;
             } else {
                 create_task();
