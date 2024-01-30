@@ -27,6 +27,14 @@
             console.log(callback.status);
     }
 
+    // parse Markdown links
+    let link_re = new RegExp('\\[([^\\[]+)\\]\\(([^)]*)\\)', 'gm');
+    let links = [];
+    function replace_link(_, p1, p2) {
+        links.push(p2);
+        return p1;
+    }
+
     draft.lines.forEach(function (line) {
         let match;
 
@@ -48,7 +56,12 @@
             if (match) {
                 state = 'task';
                 indent = match[1].length;
-                taskpaper = match[2] + match[3] + '\n';
+                links = [];
+                let task = match[3].replace(link_re, replace_link);
+                taskpaper = match[2] + task + '\n';
+                if (links.length) {
+                    taskpaper += links.join('\n') + '\n';
+                }
                 tick = index + indent + match[2].length + 1;
             }
             break;
