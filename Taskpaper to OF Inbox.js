@@ -46,7 +46,6 @@
         content = content.replace(/^/gm, '- ');
 
     // parse Markdown links
-    let link_re = new RegExp(, 'gm');
     let links;
     function replace_link(_, p1, p2) {
         links.push(p2);
