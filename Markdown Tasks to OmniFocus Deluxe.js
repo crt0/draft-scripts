@@ -37,6 +37,6 @@
             context.fail();
         }
 
-        editor.setTextInRange(...task.stateRange, '{-}');
+        editor.advanceTask(task);
     });
 })();
