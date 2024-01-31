@@ -14,7 +14,7 @@
         for (index++; index < input.length; index++) {
             let line = input[index];
 
-            matches = line.match(/^(${level}#+)\s+/);
+            matches = line.match(new RegExp(`^(${level}#+)\\s+`));
             if (matches) {
                 let result = process_markdown_section(input, index);
                 if (result.output.length) {
