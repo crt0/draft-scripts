@@ -38,8 +38,11 @@
             if (line.match(/^[^\s]+/))
                 nonempty = 1;
 
-            line = line.replace(/^(\s*[-+] ){[- x]}\s+([^\s])/, `$1${ME} will `
-                                + "$2".toLowerCase());
+            function replace_checkbox(_, bullet, initial) {
+                return bullet + ME + ' will ' + initial.toLowerCase();
+            }
+            line = line.replace(/^(\s*[-+] )\{[- x]\}\s+([^\s])/,
+                                replace_checkbox);
 
             output.push(line);
         }
