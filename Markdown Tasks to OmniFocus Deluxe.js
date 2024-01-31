@@ -14,61 +14,29 @@
     let index = 0;
     let tick = 0;
 
-    function create_task() {
-        let callback = CallbackURL.create();
-        callback.baseURL = base_url;
-        callback.addParameter('content', taskpaper.trim() + '\n  '
-                              + permalink);
-        if (callback.open())
-            if (tick) {
-                editor.setTextInRange(tick, 1, '-');
-            }
-        else
-            console.log(callback.status);
-    }
-
     // parse Markdown links
-    const link_re = /\[([^\[]+)\]\(([^)]*)\)/gm;
     let links = [];
     function replace_link(_, p1, p2) {
         links.push(p2);
         return p1;
     }
+    function parse_links(s) {
+        links = [];
+        s = s.replace(/\[([^[]+)\]\(([^)]*)\)/gm, replace_link);
+        return [s, ...links].join('\n');
+    }
 
-    draft.lines.forEach(function (line) {
-        let match;
-
-        switch (state) {
-        case 'task':
-            match = line.match(/^(\s*)/);
-            if (match && match[0].length > indent) {
-                taskpaper += line.replace(/^(\s*)- /, '') + '\n';
-                break;
-            } else {
-                create_task();
-                state = 'body';
-                taskpaper = '';
-                tick = 0;
-            }
-            // fallthrough
-        case 'body':
-            match = line.match(/^(\s*)(- )\{ \} (.*)/);
-            if (match) {
-                state = 'task';
-                indent = match[1].length;
-                links = [];
-                let task = match[3].replace(link_re, replace_link);
-                taskpaper = match[2] + task + '\n';
-                if (links.length) {
-                    taskpaper += links.join('\n') + '\n';
-                }
-                tick = index + indent + match[2].length + 1;
-            }
-            break;
+    editor.incompleteTasks.forEach(task => {
+        let callback = CallbackURL.create();
+        callback.baseURL = base_url;
+        callback.addParameter('content', '- '
+                              + parse_links(task.label) + '\n'
+                              + permalink);
+        if (!callback.open()) {
+            alert(callback.status);
+            context.fail();
         }
-        index += line.length + 1;
-    });
 
-    if (state === 'task')
-        create_task();
+        editor.setTextInRange(...task.stateRange, '{-}');
+    });
 })();
