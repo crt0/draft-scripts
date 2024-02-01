@@ -26,7 +26,9 @@
         return [s, ...links].join('\n');
     }
 
-    editor.incompleteTasks.forEach(task => {
+    editor.incompleteTasks.filter(task =>
+        task && task.state && task.state[0] === '{'
+    ).forEach(task => {
         let callback = CallbackURL.create();
         callback.baseURL = base_url;
         callback.addParameter('content', '- '
