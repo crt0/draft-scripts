@@ -3,10 +3,16 @@
     const TASKPAPER_ACTION = 'Taskpaper to OF Inbox';
 
     const c = draft.content;
-    let action;
-    if (c.match(/^#/gm) || c.match(/^\s*[-+*] {[- x]}\s/gm))
-        action = Action.find(MARKDOWN_ACTION);
-    else
-        action = Action.find(TASKPAPER_ACTION);
-    app.queueAction(action, draft);
+    let action_name;
+    if (c.match(/^#/gm) || c.match(/^\s*[-+*] {[- x]}\s/gm)) {
+        action_name = MARKDOWN_ACTION;
+        draft.isArchived = true;
+    } else {
+        action_name = TASKPAPER_ACTION;
+        draft.isTrashed = true;
+    }
+
+    require(action_name + '.js');
+
+    draft.update();
 })();
