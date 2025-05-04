@@ -3,7 +3,7 @@
 
     let workspace = Workspace.create();
     workspace.tagFilter = 'brewery';
-    workspace.setArchiveSort('name');
+    workspace.setAllSort('name');
     let brewery_drafts = new Map(workspace.query('all')
                                           .map(d => [d.displayTitle, d]));
 
