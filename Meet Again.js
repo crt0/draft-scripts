@@ -9,13 +9,6 @@
         return ('' + a[0]).localeCompare(b[0]);
     }
 
-    function bring_forward(previous_content, section, callback) {
-        let matches = previous_content
-            .match(new RegExp('^## ' + section + '.*?(?=^## |$(?![\r\n]))',
-                              'ms'));
-        return matches ? callback(matches[0]) : '';
-    }
-
     // create temp workspace to query drafts
     let workspace = Workspace.create();
     workspace.tagFilter = 'meeting';

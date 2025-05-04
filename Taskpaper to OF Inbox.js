@@ -41,6 +41,23 @@
         }
     }
 
+    // if it doens't look much like TaskPaper, bullet each line
+    if (!content.match(/^\s*[-+*]\s/gm) && !content.match(/:$/gm))
+        content = content.replace(/^/gm, '- ');
+
+    // parse Markdown links
+    let links;
+    function replace_link(_, p1, p2) {
+        links.push(p2);
+        return p1;
+    }
+    function parse_links(line) {
+        links = [];
+        line = line.replace(/\[([^[]+)\]\(([^)]*)\)/gm, replace_link);
+        return [line, ...links];
+    }
+    content = content.split('\n').flatMap(parse_links).join('\n');
+
     //send this to OmniFocus
     let cb = CallbackURL.create();
     cb.baseURL = baseURL;
